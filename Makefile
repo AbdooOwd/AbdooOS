@@ -21,7 +21,7 @@ rwildcard = $(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2
 .PHONY: all always os-image run clear
 
 all: os-image run
-
+build: os-image
 
 os-image: $(BUILD_DIR)/$(OS_FILENAME)
 bootloader: stage1 stage2

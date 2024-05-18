@@ -9,13 +9,19 @@ jmp	main				; go to start
 
 ;	Preprocessor directives
 
-%include "src/boot/stdio.inc"
-%include "src/boot/gdt.inc"
-%define ENDL 0x0D, 0x0A
+%include    "src/boot/stdio.inc"
+%include    "src/boot/gdt.inc"
+%include    "src/boot/A20.inc"
+%define     ENDL 0x0D, 0x0A
 
 ;	Data Section
 
-msg_loading: db "Preparing to load operating system...", ENDL, 0x00
+msg_loading:    db "Preparing to load operating system...", ENDL, 0
+msg_gdt:        db "Installing GDT...", ENDL, 0
+msg_a20:        db "Enabling A20, 20th address line...", ENDL, 0
+msg_pmode:      db "Entering Protected Mode...", ENDL, 0
+
+
 
 ;	STAGE 2 ENTRY POINT
 ;
@@ -39,27 +45,27 @@ main:
 	mov	sp, 0xFFFF
 	sti				; enable interrupts
 
-	;-------------------------------;
 	;   Print loading message	;
-	;-------------------------------;
 
 	mov	si, msg_loading
 	call	puts16
 
-	;-------------------------------;
 	;   Install our GDT
-	;-------------------------------;
+    mov si, msg_gdt
+    call puts16
 
-	call	install_GDT		; install our GDT
-
-	;-------------------------------;
-	;   Go into pmode		;
-	;-------------------------------;
-
+	call	install_GDT
 
     ; enable A20
-    mov ax, 0x2401
-    int 0x15
+    mov si, msg_a20
+    call puts16
+    
+    call	EnableA20_KKbrd_Out
+
+	;   Go into pmode
+
+    mov si, msg_pmode
+    call puts16
 
 	cli				; clear interrupts
 	mov	eax, cr0		; set bit 0 in cr0--enter pmode
