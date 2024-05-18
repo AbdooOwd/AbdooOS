@@ -1,0 +1,128 @@
+# By @AbdooOwd
+
+ASM?=nasm
+CC?=gcc
+MAKE?=make
+
+TOOLCHAIN?=~/AbdooOwd/Toolchain/i686-elf/bin
+
+ASM16?=$(TOOLCHAIN)/i686-elf-as
+CC16?=$(TOOLCHAIN)/i686-elf-gcc
+LD16?=$(TOOLCHAIN)/i686-elf-ld
+
+QEMU?=qemu-system-i386
+
+
+CFLAGS += -ffreestanding -c
+ASMFLAGS +=
+
+BUILD_DIR?=bin
+SRC_DIR?=src
+
+# Filenames
+OS_FILENAME?=OS.iso
+FAT_STD_FILENAME=fat_std.exe
+
+rwildcard = $(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
+
+# C_SOURCES=$(wildcard $(SRC_DIR)/libc/*.c $(SRC_DIR)/cpu/*.c $(SRC_DIR)/drivers/*.c $(SRC_DIR)/kernel/*.c)
+C_SOURCES=$(call rwildcard,$(SRC_DIR)/,*.c)
+C_OBJECTS=${C_SOURCES:.c=.o}
+
+ASM_SOURCES=$(wildcard $(SRC_DIR)/boot/kernel_entry.asm $(SRC_DIR)/cpu/*.asm $(SRC_DIR)/kernel/asm/*.asm)
+ASM_OBJECTS=${ASM_SOURCES:.asm=.o}
+
+OBJ=$(call rwildcard,$(SRC_DIR)/,*.o)
+
+H_SOURCES=$(wildcard $(SRC_DIR)/kernel/core/*.h $(SRC_DIR)/libc/*.h $(SRC_DIR)/cpu/*.h $(SRC_DIR)/drivers/*.h $(SRC_DIR)/kernel/*.h)
+
+
+
+.PHONY: all os-image run env always clean
+
+all: env always os-image run
+
+os-image: always $(BUILD_DIR)/$(OS_FILENAME)
+fat-std: $(BUILD_DIR)/$(FAT_STD_FILENAME)
+
+always:
+	mkdir -p $(BUILD_DIR)/objects
+	mkdir -p $(BUILD_DIR)/info
+
+env:
+	export PATH="~/AbdooOwd/Toolchain/i686-elf/bin:$PATH"
+
+clean-obj clear-obj:
+	rm -r $(OBJ)
+
+clean clear: clean-obj
+#	$(MAKE) -C $(SRC_DIR)/kernel BUILD_DIR=$(abspath $(BUILD_DIR)) clean
+	$(MAKE) -C $(SRC_DIR)/boot/stage2 BUILD_DIR="$(abspath $(BUILD_DIR))" clean
+	$(MAKE) -C $(SRC_DIR)/boot/stage1 BUILD_DIR="$(abspath $(BUILD_DIR))" clean
+	rm -rf $(BUILD_DIR)/*
+#	rm -d $(BUILD_DIR)
+
+bootloader: stage1 stage2
+kernel:		$(BUILD_DIR)/kernel.bin
+
+stage1: $(BUILD_DIR)/stage1.bin
+stage2: $(BUILD_DIR)/stage2.bin
+
+# The image
+$(BUILD_DIR)/$(OS_FILENAME): bootloader kernel
+	dd if=/dev/zero of=$@ bs=512 count=2880
+	mkfs.fat -F 12 -n "ABOS" $@
+	dd if=$(BUILD_DIR)/stage1.bin of=$@ bs=512 count=1 conv=notrunc
+	mcopy -i $@ $(BUILD_DIR)/stage2.bin "::stage2.bin"
+#	mcopy -i $@ $(BUILD_DIR)/kernel.bin "::kernel.bin"
+	mcopy -i $@ src/data/poop.txt "::poop.txt"
+
+# Assembly Booting
+$(BUILD_DIR)/boot.bin: $(SRC_DIR)/boot/boot.asm
+	$(ASM) $< -f bin -o $@
+
+$(BUILD_DIR)/boot_nano.bin: $(SRC_DIR)/boot/boot_nano.asm
+	$(ASM) $< -f bin -o $@
+
+$(BUILD_DIR)/stage1.bin: always
+	$(MAKE) -C $(SRC_DIR)/boot/stage1 BUILD_DIR="$(abspath $(BUILD_DIR))"
+	@echo ""
+	@echo " ---> stage1.bin > DONE"
+	@echo ""
+
+$(BUILD_DIR)/stage2.bin: always
+	$(MAKE) -C $(SRC_DIR)/boot/stage2 BUILD_DIR="$(abspath $(BUILD_DIR))"
+	@echo ""
+	@echo " ---> stage2.bin > DONE"
+	@echo ""
+
+
+# compiles all the assembly code
+%.o: %.asm
+	$(ASM) $< -f elf -o $@
+
+%.o: %.c $(H_SOURCES)
+	$(CC16) $(CFLAGS) $< -o $@
+
+# Sectors Filler
+$(BUILD_DIR)/zeroes.bin: $(SRC_DIR)/boot/zeroes.asm
+	$(ASM) $< -f bin -o $@
+
+# Link boot code, kernel entry, and mega_kernel.o
+$(BUILD_DIR)/kernel.bin: $(ASM_OBJECTS) $(C_OBJECTS)
+	$(MAKE) always
+	$(LD16) -o $@ -Ttext 0x1000 $^ --oformat binary -Map $(BUILD_DIR)/info/linked.map
+	@echo ""
+	@echo " ---> C files linked"
+	@echo ""
+
+
+run: os-image
+	$(QEMU) -fda $(BUILD_DIR)/$(OS_FILENAME)
+
+# silly - test
+$(BUILD_DIR)/$(FAT_STD_FILENAME): $(SRC_DIR)/tools/fat/fat_std.c 
+	gcc $< -o $@
+
+test-fat: fat-std $(BUILD_DIR)/fs_$(OS_FILENAME)
+	./bin/$(FAT_STD_FILENAME) bin/fs_OS.iso "POOP    TXT"
