@@ -1,36 +1,92 @@
-org 0x0
-bits 16
+bits	16
 
+; Remember the memory map-- 0x500 through 0x7bff is unused above the BIOS data area.
+; We are loaded at 0x500 (0x50:0)
+
+org 0x500
+
+jmp	main				; go to start
+
+;	Preprocessor directives
+
+%include "src/boot/stdio.inc"
+%include "src/boot/gdt.inc"
 %define ENDL 0x0D, 0x0A
- 
-jmp main
 
+;	Data Section
 
-puts:
-	lodsb		        ; load next byte from string from SI to AL
-	or	al, al	        ; Does AL=0?
-    jz	puts_done	    ; Yep, null terminator found-bail out
-	mov	ah,	0x0e	    ; Nope-Print the character
-	int	0x10
-	jmp	puts	        ; Repeat until null terminator found
-puts_done:
-	ret		            ; we are done, so return
+msg_loading: db "Preparing to load operating system...", ENDL, 0x00
 
+;	STAGE 2 ENTRY POINT
+;
+;		-Store BIOS information
+;		-Load Kernel
+;		-Install GDT; go into protected mode (pmode)
+;		-Jump to Stage 3
 
-; Second Stage Loader Entry Point
- 
 main:
-    cli		; clear interrupts
-	push	cs	; Insure DS=CS
-	pop	ds
- 
-	mov	si, msg
-	call	puts
- 
-	cli		; clear interrupts to prevent triple faults
-	hlt		; hault the system
+
+	;-------------------------------;
+	;   Setup segments and stack	;
+	;-------------------------------;
+
+	cli				; clear interrupts
+	xor	ax, ax			; null segments
+	mov	ds, ax
+	mov	es, ax
+	mov	ax, 0x9000		; stack begins at 0x9000-0xffff
+	mov	ss, ax
+	mov	sp, 0xFFFF
+	sti				; enable interrupts
+
+	;-------------------------------;
+	;   Print loading message	;
+	;-------------------------------;
+
+	mov	si, msg_loading
+	call	puts16
+
+	;-------------------------------;
+	;   Install our GDT
+	;-------------------------------;
+
+	call	install_GDT		; install our GDT
+
+	;-------------------------------;
+	;   Go into pmode		;
+	;-------------------------------;
 
 
-; Data Section
- 
-msg: db	"Preparing to load operating system...", 13, 10, 0
+    ; enable A20
+    mov ax, 0x2401
+    int 0x15
+
+	cli				; clear interrupts
+	mov	eax, cr0		; set bit 0 in cr0--enter pmode
+	or	eax, 1
+	mov	cr0, eax
+
+	jmp	0x08:Stage3		; far jump to fix CS. Remember that the code selector is 0x8!
+
+;	ENTRY POINT FOR STAGE 3
+
+bits 32					; Welcome to the 32 bit world!
+
+Stage3:
+
+	;-------------------------------;
+	;   Set registers		;
+	;-------------------------------;
+
+	mov		ax, 0x10		; set data segments to data selector (0x10)
+	mov		ds, ax
+	mov		ss, ax
+	mov		es, ax
+	mov		esp, 0x90000		; stack begins from 90000h
+
+;	Stop execution
+
+STOP:
+
+	cli
+	hlt
