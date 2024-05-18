@@ -1,6 +1,7 @@
 org 0x0
 bits 16
- 
+
+%define ENDL 0x0D, 0x0A
  
 jmp main
 

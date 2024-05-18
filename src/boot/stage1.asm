@@ -1,23 +1,13 @@
 
-;*********************************************
-;	Boot1.asm
-;		- A Simple Bootloader
-;
-;	Operating Systems Development Series
-;*********************************************
+[bits 16]	; we are in 16 bit real mode
+[org 0]		; we will set regisers later
 
-bits	16						; we are in 16 bit real mode
-
-org	0						; we will set regisers later
+%define ENDL 0x0D, 0x0A
 
 start:	jmp	main					; jump to start of bootloader
 
-;*********************************************
-;	BIOS Parameter Block
-;*********************************************
 
-; BPB Begins 3 bytes from start. We do a far jump, which is 3 bytes in size.
-; If you use a short jump, add a "nop" after it to offset the 3rd byte.
+;	BIOS Parameter Block
 
 bdb_oem:                    db 'MSWIN4.1'               ; 8 bytes (recommended by Microsoft)
 bdb_bytes_per_sector:       dw 512
@@ -62,7 +52,7 @@ print:
 ; ES:BX=>Buffer to read to
 ;************************************************;
 
-ReadSectors:
+read_sectors:
     .MAIN
         mov     di, 0x0005                          ; five retries for error
     .SECTORLOOP
@@ -97,10 +87,10 @@ ReadSectors:
         loop    .MAIN                               ; read next sector
         ret
 
-;************************************************;
+
+
 ; Convert CHS to LBA
 ; LBA = (cluster - 2) * sectors per cluster
-;************************************************;
 
 ClusterLBA:
     sub     ax, 0x0002                          ; zero base cluster number
@@ -109,8 +99,9 @@ ClusterLBA:
     mul     cx
     add     ax, WORD [datasector]               ; base data sector
     ret
-     
-;************************************************;
+
+
+
 ; Convert LBA to CHS
 ; AX=>LBA Address to convert
 ;
@@ -118,7 +109,7 @@ ClusterLBA:
 ; absolute head   = (logical sector / sectors per track) MOD number of heads
 ; absolute track  = logical sector / (sectors per track * number of heads)
 ;
-;************************************************;
+
 
 LBACHS:
           xor     dx, dx                              ; prepare dx:ax for operation
@@ -131,66 +122,60 @@ LBACHS:
           mov     BYTE [absoluteTrack], al
           ret
 
-;*********************************************
+
+
 ;	Bootloader Entry Point
-;*********************************************
+
 
 main:
 
-     ;----------------------------------------------------
      ; code located at 0000:7C00, adjust segment registers
-     ;----------------------------------------------------
      
-        cli						; disable interrupts
+        cli								; disable interrupts
         mov     ax, 0x07C0				; setup registers to point to our segment
         mov     ds, ax
         mov     es, ax
         mov     fs, ax
         mov     gs, ax
 
-     ;----------------------------------------------------
      ; create stack
-     ;----------------------------------------------------
      
         mov     ax, 0x0000				; set the stack
         mov     ss, ax
         mov     sp, 0xFFFF
-        sti						; restore interrupts
+        sti								; restore interrupts
 
-    ;----------------------------------------------------
     ; Display loading message
-    ;----------------------------------------------------
      
         mov     si, msgLoading
         call    print
-          
-    ;----------------------------------------------------
+    
     ; Load root directory table
-    ;----------------------------------------------------
+	
 
-    LOAD_ROOT:
+    load_root:
      
     ; compute size of root directory and store in "cx"
      
         xor     cx, cx
         xor     dx, dx
         mov     ax, 0x0020                           ; 32 byte directory entry
-        mul     WORD [bdb_dir_entries_count]                ; total size of directory
-        div     WORD [bdb_bytes_per_sector]             ; sectors used by directory
+        mul     WORD [bdb_dir_entries_count]         ; total size of directory
+        div     WORD [bdb_bytes_per_sector]          ; sectors used by directory
         xchg    ax, cx
           
      ; compute location of root directory and store in "ax"
      
         mov     al, BYTE [bdb_fat_count]            ; number of FATs
-        mul     WORD [bdb_sectors_per_fat]               ; sectors used by FATs
-        add     ax, WORD [bdb_reserved_sectors]         ; adjust for bootsector
-        mov     WORD [datasector], ax                 ; base of root directory
+        mul     WORD [bdb_sectors_per_fat]          ; sectors used by FATs
+        add     ax, WORD [bdb_reserved_sectors]     ; adjust for bootsector
+        mov     WORD [datasector], ax               ; base of root directory
         add     WORD [datasector], cx
           
      ; read root directory into memory (7C00:0200)
      
-        mov     bx, 0x0200                            ; copy root dir above bootcode
-        call    ReadSectors
+        mov     bx, 0x0200                          ; copy root dir above bootcode
+        call    read_sectors
 
      ;----------------------------------------------------
      ; Find stage 2
@@ -206,7 +191,7 @@ main:
         push    di
     rep  cmpsb                                         ; test for entry match
         pop     di
-        je      LOAD_FAT
+        je      load_fat
         pop     cx
         add     di, 0x0020                            ; queue next directory entry
         loop    .LOOP
@@ -216,7 +201,7 @@ main:
      ; Load FAT
      ;----------------------------------------------------
 
-    LOAD_FAT:
+    load_fat:
      
      ; save starting cluster of boot image
      
@@ -239,7 +224,7 @@ main:
      ; read FAT into memory (7C00:0200)
 
         mov     bx, 0x0200                          ; copy FAT above bootcode
-        call    ReadSectors
+        call    read_sectors
 
      ; read image file into memory (0050:0000)
      
@@ -254,14 +239,14 @@ main:
      ; Load Stage 2
      ;----------------------------------------------------
 
-    LOAD_IMAGE:
+    load_image:
      
         mov     ax, WORD [cluster]                  ; cluster to read
         pop     bx                                  ; buffer to read into
         call    ClusterLBA                          ; convert cluster to LBA
         xor     cx, cx
         mov     cl, BYTE [bdb_sectors_per_cluster]     ; sectors to read
-        call    ReadSectors
+        call    read_sectors
         push    bx
           
      ; compute next cluster
@@ -290,7 +275,7 @@ main:
      
         mov     WORD [cluster], dx                  ; store new cluster
         cmp     dx, 0x0FF0                          ; test for end of file
-        jb      LOAD_IMAGE
+        jb      load_image
           
     DONE:
      
