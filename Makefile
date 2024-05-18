@@ -24,18 +24,24 @@ all: os-image run
 
 
 os-image: $(BUILD_DIR)/$(OS_FILENAME)
-bootloader: stage1
+bootloader: stage1 stage2
 
 stage1: $(BUILD_DIR)/stage1.bin
+stage2: $(BUILD_DIR)/stage2.bin
 
 $(BUILD_DIR)/$(OS_FILENAME): always bootloader
 	dd if=/dev/zero of=$@ bs=512 count=2880
 	mkfs.fat -F 12 -n "ABOS" $@
 	dd if=$(BUILD_DIR)/stage1.bin of=$@ bs=512 count=1 conv=notrunc
+	mcopy -i $@ $(BUILD_DIR)/stage2.bin "::STAGE2.SYS"
 
 
-$(BUILD_DIR)/stage1.bin: $(SRC_DIR)/boot/stage1/boot.asm
+$(BUILD_DIR)/stage1.bin: $(SRC_DIR)/boot/stage1.asm
 	$(ASM) $< -f bin -o $@
+
+$(BUILD_DIR)/stage2.bin: $(SRC_DIR)/boot/stage2.asm
+	$(ASM) $< -f bin -o $@
+
 
 # Processes
 
