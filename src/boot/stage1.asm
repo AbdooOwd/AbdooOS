@@ -300,10 +300,10 @@ main:
     datasector:  dw 0x0000
     cluster:     dw 0x0000
     ImageName:   db "STAGE2  SYS"
-    msgLoading:  db 0x0D, 0x0A, "Loading Boot Image ", 0x0D, 0x0A, 0x00
-    msgCRLF:     db 0x0D, 0x0A, 0x00
+    msgLoading:  db ENDL, "Loading Boot Image...", ENDL, 0x00
+    msgCRLF:     db ENDL, 0x00
     msgProgress: db ".", 0x00
-    msgFailure:  db 0x0D, 0x0A, "ERROR : Press Any Key to Reboot", 0x0A, 0x00
+    msgFailure:  db ENDL, "ERROR : Press Any Key to Reboot", 0x0A, 0x00
      
           TIMES 510-($-$$) DB 0
           DW 0xAA55
