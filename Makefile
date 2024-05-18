@@ -8,7 +8,7 @@ LD16=$(TOOLCHAIN)/i686-elf-ld
 
 C_FLAGS=-ffreestanding -c
 
-
+ROOTFS_DIR=rootfs
 BUILD_DIR=bin
 SRC_DIR=src
 
@@ -34,6 +34,7 @@ $(BUILD_DIR)/$(OS_FILENAME): always bootloader
 	mkfs.fat -F 12 -n "ABOS" $@
 	dd if=$(BUILD_DIR)/stage1.bin of=$@ bs=512 count=1 conv=notrunc
 	mcopy -i $@ $(BUILD_DIR)/stage2.bin "::STAGE2.SYS"
+	mcopy -i $@ $(ROOTFS_DIR)/test.txt	"::test.txt"
 
 
 $(BUILD_DIR)/stage1.bin: $(SRC_DIR)/boot/stage1.asm
