@@ -31,3 +31,18 @@ and try understanding it.
 
 Anyway, now I gotta make myself able to use a higher-level language, 
 I'll **see** about that _(pun intended)_.
+
+## Coding stage 2, includes and... kernel? [19/05/2024]
+
+So I coded stage 2. It loads perfectly, goes to PMode. Cool.
+I fixed some stuff about it too. Now I'm coding includes,
+having them all in one file isn't really great...
+
+Now I have these includes:
+-   `A20.inc`: 20th address line related stuff.
+-   `floppy16.inc`: sector reading, lba to chs converting...
+-   `stdio.inc`: Output mostly, for now...
+-   `gdt.inc`: Global Descriptor Table stuff, for PMode.
+
+Damn! I've done so much more than the other times, and the project is still
+only 700Kb! _(700Kb cuz of the `.git` dir)_.
