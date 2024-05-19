@@ -9,7 +9,7 @@ start:	jmp	main					; jump to start of bootloader
 
 ;	BIOS Parameter Block
 
-bdb_oem:                    db 'MSWIN4.1'               ; 8 bytes (recommended by Microsoft)
+bdb_oem:                    db 'ABDOOOS3'               ; 8 bytes (recommended by Microsoft)
 bdb_bytes_per_sector:       dw 512
 bdb_sectors_per_cluster:    db 1
 bdb_reserved_sectors:       dw 1

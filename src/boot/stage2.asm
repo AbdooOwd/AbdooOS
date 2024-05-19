@@ -7,11 +7,15 @@ org 0x500
 
 jmp	main				; go to start
 
+
+
 ;	Preprocessor directives
 
 %include    "src/boot/stdio.inc"
 %include    "src/boot/gdt.inc"
 %include    "src/boot/A20.inc"
+%include	"src/boot/floppy16.inc"
+
 %define     ENDL 	0x0D, 0x0A
 %define		VIDMEM	0xB8000
 
@@ -95,7 +99,8 @@ stage3:
 	mov		es, ax
 	mov		esp, 0x90000		; stack begins from 90000h
 
-	
+	; GOAL: Load kernel.asm
+
 	call clear_screen32
 
 	mov ebx, msg_welcome
