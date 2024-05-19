@@ -46,37 +46,37 @@ putch32:
 
 	xor	eax, eax		; clear eax
 
-		;--------------------------------
-		; Remember: currentPos = x + y * COLS! x and y are in _CurX and _CurY.
-		; Because there are two bytes per character, COLS=number of characters in a line.
-		; We have to multiply this by 2 to get number of bytes per line. This is the screen width,
-		; so multiply screen with * _CurY to get current line
-		;--------------------------------
+	;--------------------------------
+	; Remember: currentPos = x + y * COLS! x and y are in _CurX and _CurY.
+	; Because there are two bytes per character, COLS=number of characters in a line.
+	; We have to multiply this by 2 to get number of bytes per line. This is the screen width,
+	; so multiply screen with * _CurY to get current line
+	;--------------------------------
 
-		mov	ecx, COLS * 2		; Mode 7 has 2 bytes per char, so its COLS*2 bytes per line
-		mov	al, byte [cur_y]	; get y pos
-		mul	ecx			; multiply y*COLS
-		push	eax			; save eax--the multiplication
+	mov	ecx, COLS * 2		; Mode 7 has 2 bytes per char, so its COLS*2 bytes per line
+	mov	al, byte [cur_y]	; get y pos
+	mul	ecx			; multiply y*COLS
+	push	eax			; save eax--the multiplication
 
-		;--------------------------------
-		; Now y * screen width is in eax. Now, just add cur_x. But, again remember that _CurX is relative
-		; to the current character count, not byte count. Because there are two bytes per character, we
-		; have to multiply cur_x by 2 first, then add it to our screen width * y.
-		;--------------------------------
+	;--------------------------------
+	; Now y * screen width is in eax. Now, just add cur_x. But, again remember that _CurX is relative
+	; to the current character count, not byte count. Because there are two bytes per character, we
+	; have to multiply cur_x by 2 first, then add it to our screen width * y.
+	;--------------------------------
 
-		mov	al, byte [cur_x]	; multiply _CurX by 2 because it is 2 bytes per char
-		mov	cl, 2
-		mul	cl
-		pop	ecx			; pop y*COLS result
-		add	eax, ecx
+	mov	al, byte [cur_x]	; multiply _CurX by 2 because it is 2 bytes per char
+	mov	cl, 2
+	mul	cl
+	pop	ecx			; pop y*COLS result
+	add	eax, ecx
 
-		;-------------------------------
-		; Now eax contains the offset address to draw the character at, so just add it to the base address
-		; of video memory (Stored in edi)
-		;-------------------------------
+	;-------------------------------
+	; Now eax contains the offset address to draw the character at, so just add it to the base address
+	; of video memory (Stored in edi)
+	;-------------------------------
 
-		xor	ecx, ecx
-		add	edi, eax		; add it to the base address
+	xor	ecx, ecx
+	add	edi, eax		; add it to the base address
 
 	;   Watch for new line
 
@@ -90,8 +90,8 @@ putch32:
 	mov	word [edi], dx				; write to video display
 
 	inc	byte [cur_x]				; go to next character
-	; cmp	byte [cur_x], COLS		; are we at the end of the line?
-	; je	.row					; yep-go to next row
+	cmp	byte [cur_x], COLS		; are we at the end of the line?
+	je	.row					; yep-go to next row
 	jmp	.done						; nope, bail out
 
 	; next row
@@ -101,6 +101,10 @@ putch32:
 	inc	byte [cur_y]		; go to next row
 
 .done:
+	mov	bh, byte [cur_y]
+	mov	bl, byte [cur_x]
+	call move_cursor
+
 	popa				; restore registers and return
 	ret
 
@@ -129,10 +133,6 @@ puts32:
 		jmp	.loop
 
 	.done:
-		mov	bh, byte [cur_y]	; get current position
-		mov	bl, byte [cur_x]
-		call	move_cursor			; update cursor
-
 		popa				; restore registers, and return
 		ret
 
