@@ -15,6 +15,7 @@ jmp	main				; go to start
 %include    "src/boot/gdt.inc"
 %include    "src/boot/A20.inc"
 %include	"src/boot/floppy16.inc"
+%include	"src/boot/fat12.inc"
 
 %define     ENDL 	0x0D, 0x0A
 %define		VIDMEM	0xB8000
