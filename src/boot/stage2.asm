@@ -12,15 +12,15 @@ jmp	main				; go to start
 %include    "src/boot/stdio.inc"
 %include    "src/boot/gdt.inc"
 %include    "src/boot/A20.inc"
-%define     ENDL 0x0D, 0x0A
+%define     ENDL 	0x0D, 0x0A
+%define		VIDMEM	0xB8000
 
 ;	Data Section
 
 msg_loading:    db "Preparing to load operating system...", ENDL, 0
-msg_gdt:        db "Installing GDT...", ENDL, 0
-msg_a20:        db "Enabling A20, 20th address line...", ENDL, 0
-msg_pmode:      db "Entering Protected Mode...", ENDL, 0
-
+msg_gdt:        db "Installing GDT...", 					ENDL, 0
+msg_a20:        db "Enabling A20, 20th address line...", 	ENDL, 0
+msg_pmode:      db "Entering Protected Mode...", 			ENDL, 0
 
 
 ;	STAGE 2 ENTRY POINT
@@ -72,13 +72,18 @@ main:
 	or	eax, 1
 	mov	cr0, eax
 
-	jmp	0x08:Stage3		; far jump to fix CS. Remember that the code selector is 0x8!
+	jmp	0x08:stage3		; far jump to fix CS. Remember that the code selector is 0x8!
 
 ;	ENTRY POINT FOR STAGE 3
 
 bits 32					; Welcome to the 32 bit world!
 
-Stage3:
+
+; 32 bit data
+msg_welcome: 	db "Welcome to AbdooOS 0.1.0!", 0x0a, 0
+
+
+stage3:
 
 	;-------------------------------;
 	;   Set registers		;
@@ -89,6 +94,12 @@ Stage3:
 	mov		ss, ax
 	mov		es, ax
 	mov		esp, 0x90000		; stack begins from 90000h
+
+	
+	call clear_screen32
+
+	mov ebx, msg_welcome
+	call puts32
 
 ;	Stop execution
 
