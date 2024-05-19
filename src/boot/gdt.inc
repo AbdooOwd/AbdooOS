@@ -22,15 +22,15 @@ gdt_data:
 	dd 0 
  
 ; gdt code:				; code descriptor
-	dw 0FFFFh 			; limit low
+	dw 0x0FFFF			; limit low
 	dw 0 				; base low
 	db 0 				; base middle
-	db 10011010b 			; access
-	db 11001111b 			; granularity
+	db 10011010b 		; access
+	db 11001111b 		; granularity
 	db 0 				; base high
  
 ; gdt data:				; data descriptor
-	dw 0FFFFh 			; limit low (Same as code)
+	dw 0x0FFFF			; limit low (Same as code)
 	dw 0 				; base low
 	db 0 				; base middle
 	db 10010010b 			; access
