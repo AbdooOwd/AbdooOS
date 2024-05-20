@@ -16,6 +16,7 @@ jmp	main				; go to start
 %include    "src/boot/A20.inc"
 %include	"src/boot/floppy16.inc"
 %include	"src/boot/fat12.inc"
+%include	"src/boot/common.inc"
 
 %define     ENDL 	0x0D, 0x0A
 %define		VIDMEM	0xB8000
@@ -26,7 +27,7 @@ msg_loading:    db "Preparing to load operating system...", ENDL, 0
 msg_gdt:        db "Installing GDT...", 					ENDL, 0
 msg_a20:        db "Enabling A20, 20th address line...", 	ENDL, 0
 msg_pmode:      db "Entering Protected Mode...", 			ENDL, 0
-
+msgFailure:		db "ERROR OCCURED!",						ENDL, 0
 
 ;	STAGE 2 ENTRY POINT
 ;
@@ -67,9 +68,31 @@ main:
     
     call	EnableA20_KKbrd_Out
 
-	;   Go into pmode
 
-    mov si, msg_pmode
+	; Load Root Directory
+	call load_root
+
+	; load kernel
+	mov	ebx, 0			; BX:BP points to buffer to load to
+    	mov	bp, IMAGE_RMODE_BASE
+	mov	si, ImageName		; our file to load
+	call	load_file		; load our file
+	mov	dword [image_size], ecx	; save size of kernel
+	cmp	ax, 0			; Test for success
+	je	enter_stage3		; yep--onto Stage 3!
+	mov	si, msgFailure		; Nope--print error
+	call	puts16
+	mov	ah, 0
+	int     0x16                    ; await keypress
+	int     0x19                    ; warm boot computer
+	cli				; If we get here, something really went wong
+	hlt
+
+    
+
+enter_stage3:
+
+	mov si, msg_pmode
     call puts16
 
 	cli				; clear interrupts
@@ -77,7 +100,10 @@ main:
 	or	eax, 1
 	mov	cr0, eax
 
-	jmp	0x08:stage3		; far jump to fix CS. Remember that the code selector is 0x8!
+	jmp	CODE_DESC:stage3	; far jump to fix CS. Remember that the code selector is 0x8!
+
+	; Note: Do NOT re-enable interrupts! Doing so will triple fault!
+	; We will fix this in Stage 3.
 
 ;	ENTRY POINT FOR STAGE 3
 
@@ -85,8 +111,10 @@ bits 32					; Welcome to the 32 bit world!
 
 
 ; 32 bit data
-msg_welcome: 	db "Welcome to AbdooOS 0.1.0!", 0x0a, 0
+msg_registers:	db "Setting up segment registers and the stack...", 0x0a, 0
+msg_copying:	db "Copying kernel to 0x100000 (1Mb)...", 0x0a, 0
 
+; 0x8???
 
 stage3:
 
@@ -94,22 +122,42 @@ stage3:
 	;   Set registers		;
 	;-------------------------------;
 
-	mov		ax, 0x10		; set data segments to data selector (0x10)
-	mov		ds, ax
-	mov		ss, ax
-	mov		es, ax
-	mov		esp, 0x90000		; stack begins from 90000h
-
-	; GOAL: Load kernel.asm
-
-	call clear_screen32
-
-	mov ebx, msg_welcome
+	mov ebx, msg_registers
 	call puts32
 
-;	Stop execution
+	mov	ax, DATA_DESC	; set data segments to data selector (0x10)
+	mov	ds, ax
+	mov	ss, ax
+	mov	es, ax
+	mov	esp, 0x90000	; stack begins from 90000h
 
-STOP:
+
+	; Copy kernel to 1MB
+	
+
+copy_image:
+
+	mov ebx, msg_copying
+	call puts32
+
+  	mov	eax, dword [image_size]
+  	movzx	ebx, word [bdb_bytes_per_sector]
+  	mul	ebx
+  	mov	ebx, 4
+  	div	ebx
+   	cld
+   	mov    esi, IMAGE_RMODE_BASE
+   	mov	edi, IMAGE_PMODE_BASE
+   	mov	ecx, eax
+   	rep	movsd                   ; copy image to its protected mode address
+
+
+	;   Execute Kernel
+
+	jmp	CODE_DESC:IMAGE_PMODE_BASE; jump to our kernel! Note: This assumes Kernel's entry point is at 1 MB
+
+
+	;   Stop execution
 
 	cli
 	hlt

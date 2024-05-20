@@ -1,5 +1,6 @@
 # Notes
 
+
 ## Assembly related (NASM)
 -   I can set a register to zero by doing something like: 
     `xor ax, ax` where `ax` is the register.

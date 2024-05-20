@@ -137,7 +137,6 @@ puts32:
 		ret
 
 
-
 clear_screen32:
  
 	pusha

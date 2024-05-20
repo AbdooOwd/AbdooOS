@@ -1,2 +1,6 @@
 # Build stuff
 bin/
+
+# Personal
+docs/personal/
+scripts/

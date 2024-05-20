@@ -17,9 +17,12 @@ install_GDT:
  
 ; Global Descriptor Table (GDT)
  
+; 8 bytes long
 gdt_data: 
 	dd 0 				; null descriptor
-	dd 0 
+	dd 0 				
+;	We stored 2 double words, which is: 
+;		size = 2 bytes * 2 double words = 2 bytes * (2 * double word) = 8 bytes!!!!
  
 ; gdt code:				; code descriptor
 	dw 0x0FFFF			; limit low
@@ -43,4 +46,8 @@ toc:
 	dd gdt_data 			; base of GDT
  
  
+%define NULL_DESC 0
+%define CODE_DESC 0x8
+%define DATA_DESC 0x10
+
 %endif ;__GDT_INC_67343546FDCC56AAB872_INCLUDED__

@@ -46,3 +46,14 @@ Now I have these includes:
 
 Damn! I've done so much more than the other times, and the project is still
 only 700Kb! _(700Kb cuz of the `.git` dir)_.
+
+**AGH!** I finally coded the `fat12` driver, and was able to execute the kernel.
+BUT NOW IT DOESN'T REALLY EXECUTE THE KERNEL!!!!! So, in the kernel, I set up registers,
+set up the stack, blah blah blah. But I also do two things: clear the screen and print text.
+Easy to do, right? Clearing the screen works, BUT PRINTING DOESN'T WORK DAMMIT!!!1!!!!1!
+
+After deep, ***deep*** thinking and examination, I realized the mistake:
+The Kernel's origin **MUST** be at address 1Mb. And I realized "but it is!"
+when I saw the `org 10000`. But after ***deeper*** examination, I realized 
+that it must be `org 100000` with 5 zeroes! 
+_(thank you "HexInspector" by 'Mateusz Chudyk' extension from VS Code (; )_

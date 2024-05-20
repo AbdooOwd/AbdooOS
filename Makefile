@@ -1,6 +1,8 @@
 TOOLCHAIN=~/AbdooOwd/Toolchain/i686-elf-bin
 
 QEMU=qemu-system-i386
+BOCHS=bochs
+BOCHS_CONFIG_FILE=bochs.config
 
 ASM=nasm
 CC16=$(TOOLCHAIN)/i686-elf-gcc
@@ -18,9 +20,9 @@ OS_FILENAME=OS.bin
 # functions ?
 rwildcard = $(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 
-.PHONY: all always os-image run clear
+.PHONY: all always build run clear
 
-all: os-image run
+all: build run
 build: os-image
 
 os-image: $(BUILD_DIR)/$(OS_FILENAME)
@@ -29,12 +31,16 @@ bootloader: stage1 stage2
 stage1: $(BUILD_DIR)/stage1.bin
 stage2: $(BUILD_DIR)/stage2.bin
 
-$(BUILD_DIR)/$(OS_FILENAME): always bootloader
+kernel: $(BUILD_DIR)/kernel.bin
+
+
+$(BUILD_DIR)/$(OS_FILENAME): always bootloader kernel
 	dd if=/dev/zero of=$@ bs=512 count=2880
 	mkfs.fat -F 12 -n "ABOS" $@
 	dd if=$(BUILD_DIR)/stage1.bin of=$@ bs=512 count=1 conv=notrunc
 	mcopy -i $@ $(BUILD_DIR)/stage2.bin "::STAGE2.SYS"
 	mcopy -i $@ $(ROOTFS_DIR)/test.txt	"::test.txt"
+	mcopy -i $@ $(BUILD_DIR)/kernel.bin	"::KERNEL.SYS"
 
 
 $(BUILD_DIR)/stage1.bin: $(SRC_DIR)/boot/stage1.asm
@@ -43,6 +49,8 @@ $(BUILD_DIR)/stage1.bin: $(SRC_DIR)/boot/stage1.asm
 $(BUILD_DIR)/stage2.bin: $(SRC_DIR)/boot/stage2.asm
 	$(ASM) $< -f bin -o $@
 
+$(BUILD_DIR)/kernel.bin: $(SRC_DIR)/kernel/kernel.asm
+	$(ASM) $< -f bin -o $@
 
 # Processes
 
