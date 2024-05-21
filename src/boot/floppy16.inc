@@ -103,7 +103,7 @@ read_sectors:
         pop     bx
         pop     ax
         jnz     .SECTORLOOP                         ; attempt to read again
-    .SUCCESS
+    .SUCCESS:
         pop     cx
         pop     bx
         pop     ax
