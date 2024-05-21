@@ -21,6 +21,8 @@
     as a music note. For a new line, I only need a logic to take the new line feed
     _( `0x0A` )_ and go to next row.
 
+-   `sysenter` is for Ring 3 applications. `sysret` is for Ring 0.
+
 ### Hardware
 -   Floppy disks have 2880 sectors, and here comes math!
     if you look here: 

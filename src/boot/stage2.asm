@@ -27,7 +27,7 @@ msg_loading:    db "Preparing to load operating system...", ENDL, 0
 msg_gdt:        db "Installing GDT...", 					ENDL, 0
 msg_a20:        db "Enabling A20, 20th address line...", 	ENDL, 0
 msg_pmode:      db "Entering Protected Mode...", 			ENDL, 0
-msgFailure:		db "ERROR OCCURED!",						ENDL, 0
+msg_failure:		db "ERROR OCCURED!",						ENDL, 0
 
 ;	STAGE 2 ENTRY POINT
 ;
@@ -73,14 +73,14 @@ main:
 	call load_root
 
 	; load kernel
-	mov	ebx, 0			; BX:BP points to buffer to load to
+	mov	ebx, 0					; BX:BP points to buffer to load to
     	mov	bp, IMAGE_RMODE_BASE
-	mov	si, ImageName		; our file to load
-	call	load_file		; load our file
+	mov	si, image_name			; our file to load
+	call	load_file			; load our file
 	mov	dword [image_size], ecx	; save size of kernel
-	cmp	ax, 0			; Test for success
-	je	enter_stage3		; yep--onto Stage 3!
-	mov	si, msgFailure		; Nope--print error
+	cmp	ax, 0					; Test for success
+	je	enter_stage3			; yep--onto Stage 3!
+	mov	si, msg_failure			; Nope--print error
 	call	puts16
 	mov	ah, 0
 	int     0x16                    ; await keypress

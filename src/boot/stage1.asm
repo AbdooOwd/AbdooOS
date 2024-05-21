@@ -187,7 +187,7 @@ main:
     .LOOP:
         push    cx
         mov     cx, 0x000B                            ; eleven character name
-        mov     si, ImageName                         ; image name to find
+        mov     si, image_name                         ; image name to find
         push    di
     rep  cmpsb                                         ; test for entry match
         pop     di
@@ -287,7 +287,7 @@ main:
 
     FAILURE:
 
-        mov     si, msgFailure
+        mov     si, msg_failure
         call    print
         mov     ah, 0x00
         int     0x16                                ; await keypress
@@ -299,11 +299,11 @@ main:
 
     datasector:  dw 0x0000
     cluster:     dw 0x0000
-    ImageName:   db "STAGE2  SYS"
+    image_name:   db "STAGE2  SYS"
     msgLoading:  db ENDL, "Loading Boot Image...", ENDL, 0x00
     msgCRLF:     db ENDL, 0x00
     msgProgress: db ".", 0x00
-    msgFailure:  db ENDL, "ERROR : Press Any Key to Reboot", ENDL, 0x00
+    msg_failure:  db ENDL, "ERROR : Press Any Key to Reboot", ENDL, 0x00
 
           TIMES 510-($-$$) DB 0
           DW 0xAA55

@@ -6,13 +6,17 @@ jmp	kernel			; jump to kernel
 
 ; preprocessor
 %include "src/boot/stdio.inc"
+
+%define		COLS	80
+%define		ROWS	25
  
 ; DATA
  
 msg_kernel:		db "Kernel Loaded successfully!", 0x0a, 0
-msg_welcome: 	db 0x0a, "Welcome to AbdooOS 0.1.0", 0x0a, 0
-
-msg_malik:		db "malik tu es le boss", 0x0a, 0
+msg_welcome: 	
+	db 0x0a
+	times ( COLS / 4 ) db 0x20	; yeah spaces
+	db "Welcome to AbdooOS 0.1.0!", 0x0a, 0
 
 kernel:
  
@@ -28,14 +32,15 @@ kernel:
 	;   Clear screen and print success
  
 	call 	clear_screen32
-	
+
 	mov		ebx, msg_kernel
 	call	puts32
-
-	; msg_welcome
-
+	
 	mov		ebx, msg_welcome
 	call 	puts32
+
+	;	I GET MESSAGES FROM THE START!!!
+	;	MUST BE FROM ANOTHER GALAXYYY!!!
  
 	;   Stop execution
  

@@ -224,7 +224,7 @@ main:
     .LOOP:
         push    cx
         mov     cx, 0x000B                           ; eleven character name
-        mov     si, ImageName                        ; image name to find
+        mov     si, image_name                        ; image name to find
         push    di
     rep  cmpsb                                       ; test for entry match
         pop     di
@@ -239,7 +239,7 @@ main:
 - **.LOOP**: Start loop.
 - **push cx**: Save loop counter.
 - **mov cx, 0x000B**: Directory names are 11 characters.
-- **mov si, ImageName**: Load name of the image to find.
+- **mov si, image_name**: Load name of the image to find.
 - **push di**: Save current directory entry.
 - **rep cmpsb**: Compare string in SI with entry in DI.
 - **pop di**: Restore directory entry.
@@ -357,7 +357,7 @@ DONE:
         retf
 
 FAILURE:
-        mov     si, msgFailure
+        mov     si, msg_failure
         call    print
         mov     ah, 0x00
         int     0x16                                ; await keypress
