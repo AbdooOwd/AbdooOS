@@ -2,5 +2,6 @@
 bin/
 
 # Personal
+docs/oldcode/
 docs/personal/
 scripts/
