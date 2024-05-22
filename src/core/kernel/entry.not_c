@@ -1,0 +1,6 @@
+extern void kmain_();
+
+void entry() {
+    kmain_();
+    for(;;) {}
+}

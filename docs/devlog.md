@@ -57,3 +57,52 @@ The Kernel's origin **MUST** be at address 1Mb. And I realized "but it is!"
 when I saw the `org 10000`. But after ***deeper*** examination, I realized 
 that it must be `org 100000` with 5 zeroes! 
 _(thank you "HexInspector" by 'Mateusz Chudyk' extension from VS Code (; )_
+
+## Coding some C includes + trying to go to C [21/05/2024]
+
+So I coded some C includes, *\*long pause\** without having entered C yet.
+So now I'll try coding the boot sector's 2nd stage to load the C kernel instead.
+Wish me luck (: .
+
+## GCC Misery [22/05/2024]
+
+I did two things until now:
+-   Made a [**LiveJournal**](https://abdooowd.livejournal.com/).
+-   **RAGED ABOUT GCC!!!!!**
+
+Let me explain, so I was able to get all the C files _(only `string.c` and `main.c`)_,
+and I was also able to compile them, but then `ld` threw a depression message:
+`src/core/kernel/main.o: file not recognized: file format not recognized`.
+Is it even coming from `ld`? Cuz the message was on a new line. Then I told myself:
+"Maybe the file was compiled in a wrong way cuz, these kind of tools don't give a crap
+about the file extension. They just want the **content**".
+So I checked the terminal for output and... What?! It's compiling with `cc`?!!
+I told him to compile with `i686-elf-gcc`!!! What the *\*quack\** is wrong!??!!?!!
+
+Imma do an experience, I'll try running the commands ***manually***, with `i686-elf-gcc`.
+Alright, Imma go do that.
+
+Looks like it cannot find a certain `cc1`... The same thing happened when I was using
+Cygwin. I'll go search that file.
+
+OK! This one is gonna be long, but it's happy! So I recompiled the `i686-elf`
+toolchain, but it didn't fix it... So I re-tried running the commands manually.
+It worked fine! So what's the problem??!!
+The problem was that it didn't execute `i686-elf-gcc`, it executed `cc` which
+is just `gcc` but short. The problem was with the Makfile, but here's the weird part!
+The rule to compile the object files was like this:
+
+```
+%.o: %.c $(H_SOURCES)
+	$(CC16) $(C_FLAGS) $< -o $@
+```
+
+When I deleted the rule's content, it still executed `cc`! So there was probably 
+a "cached" Makefile. When I deleted the Makefile and rewrote its content, it worked!
+So happy of that!
+
+Here is the best part: I can now execute a C-Kernel!!! And I did it by myself!
+Let me explain: The boot sector's 2nd stage executes whatever kernel is at address
+0x100000 _(which is 1Mib)_. So I scratched `kernel.asm` from the Makefile and now
+I can execute a C-Kernel!!! Now I gotta restructure, refactor and organize the project.
+Because to make all of this work I had to f* everything up.

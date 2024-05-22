@@ -1,14 +1,12 @@
-TOOLCHAIN=~/AbdooOwd/Toolchain/i686-elf-bin
+TOOLCHAIN=~/opt/cross/bin
 
 QEMU=qemu-system-i386
-BOCHS=bochs
-BOCHS_CONFIG_FILE=bochs.config
 
-ASM=nasm
-CC16=$(TOOLCHAIN)/i686-elf-gcc
-LD16=$(TOOLCHAIN)/i686-elf-ld
+ASM?=nasm
+CC16?=$(TOOLCHAIN)/i686-elf-gcc
+LD16?=$(TOOLCHAIN)/i686-elf-ld
 
-C_FLAGS=-ffreestanding -c
+C_FLAGS += -ffreestanding -c
 
 ROOTFS_DIR=rootfs
 BUILD_DIR=bin
@@ -19,6 +17,17 @@ OS_FILENAME=OS.bin
 
 # functions ?
 rwildcard = $(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
+
+
+C_SOURCES := $(call rwildcard,$(SRC_DIR),*.c)
+C_OBJECTS := $(patsubst %.c,%.o,$(C_SOURCES))
+
+H_SOURCES := $(call rwildcard,$(SRC_DIR),*.h)
+
+
+# Lazniess
+ENTRY_OBJECT = src/core/kernel/entry.o
+
 
 .PHONY: all always build run clear
 
@@ -49,18 +58,35 @@ $(BUILD_DIR)/stage1.bin: $(SRC_DIR)/boot/stage1.asm
 $(BUILD_DIR)/stage2.bin: $(SRC_DIR)/boot/stage2.asm
 	$(ASM) $< -f bin -o $@
 
-$(BUILD_DIR)/kernel.bin: $(SRC_DIR)/kernel/kernel.asm
-	$(ASM) $< -f bin -o $@
+#$(BUILD_DIR)/kernel.bin: $(SRC_DIR)/core/kernel/kernel.asm
+#	$(ASM) $< -f bin -o $@
+
+$(BUILD_DIR)/kernel.bin: $(ENTRY_OBJECT)  $(C_OBJECTS) | always
+	$(LD16) -o $@ -Ttext 0x100000 $(ENTRY_OBJECT) $^ --oformat binary -Map $(BUILD_DIR)/info/linked.map
+
+# objects
+# %.o: %.asm
+# 	$(ASM) $< -f obj -o $@
+
+$(ENTRY_OBJECT): $(SRC_DIR)/core/kernel/entry.not_c
+	$(CC16) $(C_FLAGS) $< -o $@
+
+%.o: %.c $(H_SOURCES)
+	$(CC16) $(C_FLAGS) $< -o $@
+
+
 
 # Processes
 
 run: os-image
 	$(QEMU) -fda $(BUILD_DIR)/$(OS_FILENAME)
-
 # Organization stuff
 
 always:
-	mkdir -p $(BUILD_DIR)
+	mkdir -p $(BUILD_DIR) 
+	mkdir -p $(BUILD_DIR)/objects/ $(BUILD_DIR)/objects/c $(BUILD_DIR)/objects/asm
+	mkdir -p $(BUILD_DIR)/info
 
 clear clean:
 	rm -rf $(BUILD_DIR)/*
+	rm -rf $(C_OBJECTS)

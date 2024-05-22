@@ -1,5 +1,6 @@
 # Build stuff
 bin/
+*.o
 
 # Personal
 docs/oldcode/
