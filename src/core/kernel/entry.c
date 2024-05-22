@@ -1,6 +1,5 @@
 extern void kmain_();
 
-void entry() {
+void kernel_entry() {
     kmain_();
-    for(;;) {}
 }

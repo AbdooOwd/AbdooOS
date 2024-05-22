@@ -24,9 +24,10 @@ C_OBJECTS := $(patsubst %.c,%.o,$(C_SOURCES))
 
 H_SOURCES := $(call rwildcard,$(SRC_DIR),*.h)
 
+OBJECTS := $(call rwildcard,$(SRC_DIR),*.o)
 
 # Lazniess
-ENTRY_OBJECT = src/core/kernel/entry.o
+ENTRY_OBJECT := $(SRC_DIR)/core/kernel/entry.o
 
 
 .PHONY: all always build run clear
@@ -61,14 +62,18 @@ $(BUILD_DIR)/stage2.bin: $(SRC_DIR)/boot/stage2.asm
 #$(BUILD_DIR)/kernel.bin: $(SRC_DIR)/core/kernel/kernel.asm
 #	$(ASM) $< -f bin -o $@
 
-$(BUILD_DIR)/kernel.bin: $(ENTRY_OBJECT)  $(C_OBJECTS) | always
-	$(LD16) -o $@ -Ttext 0x100000 $(ENTRY_OBJECT) $^ --oformat binary -Map $(BUILD_DIR)/info/linked.map
+$(BUILD_DIR)/kernel.bin: $(ENTRY_OBJECT) $(C_OBJECTS) | always
+	$(LD16) -o $@ -Ttext 0x100000 $^ --oformat binary -Map $(BUILD_DIR)/info/linked.map
 
-# objects
+
+#
+# 	Objects
+#
+
 # %.o: %.asm
 # 	$(ASM) $< -f obj -o $@
 
-$(ENTRY_OBJECT): $(SRC_DIR)/core/kernel/entry.not_c
+$(ENTRY_OBJECT): $(SRC_DIR)/core/kernel/entry.c
 	$(CC16) $(C_FLAGS) $< -o $@
 
 %.o: %.c $(H_SOURCES)
@@ -84,9 +89,8 @@ run: os-image
 
 always:
 	mkdir -p $(BUILD_DIR) 
-	mkdir -p $(BUILD_DIR)/objects/ $(BUILD_DIR)/objects/c $(BUILD_DIR)/objects/asm
 	mkdir -p $(BUILD_DIR)/info
 
 clear clean:
 	rm -rf $(BUILD_DIR)/*
-	rm -rf $(C_OBJECTS)
+	rm -rf $(OBJECTS)

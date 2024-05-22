@@ -1,6 +1,7 @@
 # Build stuff
 bin/
 *.o
+*.not_o
 
 # Personal
 docs/oldcode/

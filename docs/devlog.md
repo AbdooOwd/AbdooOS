@@ -106,3 +106,6 @@ Let me explain: The boot sector's 2nd stage executes whatever kernel is at addre
 0x100000 _(which is 1Mib)_. So I scratched `kernel.asm` from the Makefile and now
 I can execute a C-Kernel!!! Now I gotta restructure, refactor and organize the project.
 Because to make all of this work I had to f* everything up.
+
+Ok, I got problems with linking, compiling, filenames... But now I coded 
+an entry point in C instead of Assmebly. Noice, progress.
