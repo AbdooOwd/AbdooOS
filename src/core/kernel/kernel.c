@@ -1,10 +1,19 @@
-// #include "kernel.h"
-// #include "../drivers/screen.h"
+#include "kernel.h"
+#include "../drivers/screen.h"
+
+char* msg_welcome = "Welcome to AbdooOS 0.2.0";
+
+void initialize_kernel() {
+    clear_screen();
+    set_cursor(0);
+}
 
 void kmain_() {
-    // print_char('E', MAX_COLS - 3, MAX_ROWS - 3);
-    unsigned char* vid = 0xb8000;
-    *vid = 'Q';
+
+    initialize_kernel();
+
+    print(msg_welcome);
+    print("\n\n\n$ ");
 
     for (;;) {}
 }

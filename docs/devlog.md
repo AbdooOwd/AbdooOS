@@ -109,3 +109,6 @@ Because to make all of this work I had to f* everything up.
 
 Ok, I got problems with linking, compiling, filenames... But now I coded 
 an entry point in C instead of Assmebly. Noice, progress.
+
+I FINALLY GOT A BOOTING BOOT SECTOR, STAGE 1 + 2. I GOT A WORKING KERNEL ENTRY
+**AND** A WORKING KERNEL!!!!11!!!1!

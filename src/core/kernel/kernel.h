@@ -6,6 +6,9 @@
 #define ROWS        25
 #define COLS        80
 
+// FUNCTIONS
+
+void initialize_kernel();
 void kmain_();
 
 #endif
