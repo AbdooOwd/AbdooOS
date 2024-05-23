@@ -112,3 +112,10 @@ an entry point in C instead of Assmebly. Noice, progress.
 
 I FINALLY GOT A BOOTING BOOT SECTOR, STAGE 1 + 2. I GOT A WORKING KERNEL ENTRY
 **AND** A WORKING KERNEL!!!!11!!!1!
+
+## Basic Shell + FAT12 [23/05/2024]
+
+After ~~stealing~~ getting inspiration from my old keyboard driver, and all 
+of the libraries I previously coded in my old OS project.
+So after like 2 minutes of coding: I now have a working shell.
+Next step is coding a basic FAT12 library.
