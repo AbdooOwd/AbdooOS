@@ -5,6 +5,6 @@
 
 void init_keyboard();
 void clear_buffer();
-void change_layout(char* layout);
+void change_layout();
 
 #endif

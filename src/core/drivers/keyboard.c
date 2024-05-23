@@ -81,11 +81,13 @@ static void keyboard_callback(registers_t regs) {
     UNUSED(regs);
 }
 
-void change_layout(char* layout) {
-    if (strcmp(layout, "qwerty") == 0) {
+bool isQwerty = false;
+void change_layout() {
+    isQwerty = !isQwerty;
+    if (isQwerty) {
         array_copy(sc_ascii_US, used_layout, SC_MAX + 1);
     }
-    else if (strcmp(layout, "azerty") == 0) {
+    else {
         array_copy(sc_ascii_FR, used_layout, SC_MAX + 1);
     }
 
