@@ -20,9 +20,11 @@ rwildcard = $(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2
 
 
 C_SOURCES := $(call rwildcard,$(SRC_DIR),*.c)
+H_SOURCES := $(call rwildcard,$(SRC_DIR),*.h)
 C_OBJECTS := $(patsubst %.c,%.o,$(C_SOURCES))
 
-H_SOURCES := $(call rwildcard,$(SRC_DIR),*.h)
+ASM_SOURCES := $(call rwildcard,$(SRC_DIR)/core,*.asm)
+ASM_OBJECTS := $(patsubst %.asm,%.o,$(ASM_SOURCES))
 
 OBJECTS := $(call rwildcard,$(SRC_DIR),*.o)
 
@@ -62,7 +64,7 @@ $(BUILD_DIR)/stage2.bin: $(SRC_DIR)/boot/stage2.asm
 #$(BUILD_DIR)/kernel.bin: $(SRC_DIR)/core/kernel/kernel.asm
 #	$(ASM) $< -f bin -o $@
 
-$(BUILD_DIR)/kernel.bin: $(ENTRY_OBJECT) $(C_OBJECTS) | always
+$(BUILD_DIR)/kernel.bin: $(ENTRY_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS) | always
 	$(LD16) -o $@ -Ttext 0x100000 $^ --oformat binary -Map $(BUILD_DIR)/info/linked.map
 
 
@@ -70,8 +72,8 @@ $(BUILD_DIR)/kernel.bin: $(ENTRY_OBJECT) $(C_OBJECTS) | always
 # 	Objects
 #
 
-# %.o: %.asm
-# 	$(ASM) $< -f obj -o $@
+%.o: %.asm
+	$(ASM) $< -f elf -o $@
 
 $(ENTRY_OBJECT): $(SRC_DIR)/core/kernel/entry.c
 	$(CC16) $(C_FLAGS) $< -o $@
