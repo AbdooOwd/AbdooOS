@@ -73,22 +73,22 @@ main:
 	call load_root
 
 	; load kernel
-	mov	ebx, 0					; BX:BP points to buffer to load to
-    	mov	bp, IMAGE_RMODE_BASE
-	mov	si, image_name			; our file to load
-	call	load_file			; load our file
-	mov	dword [image_size], ecx	; save size of kernel
-	cmp	ax, 0					; Test for success
-	je	enter_stage3			; yep--onto Stage 3!
-	mov	si, msg_failure			; Nope--print error
+	mov		ebx, 0					; BX:BP points to buffer to load to
+    mov		bp, IMAGE_RMODE_BASE
+	mov		si, image_name			; our file to load
+	call	load_file				; load our file
+	mov		dword [image_size], ecx	; save size of kernel
+	cmp		ax, 0					; Test for success
+	je		enter_stage3			; yep--onto Stage 3!
+	mov		si, msg_failure			; Nope--print error
 	call	puts16
-	mov	ah, 0
+	mov		ah, 0
 	int     0x16                    ; await keypress
 	int     0x19                    ; warm boot computer
-	cli				; If we get here, something really went wong
+	cli								; If we get here, something really went wong
 	hlt
 
-    
+
 
 enter_stage3:
 
