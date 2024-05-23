@@ -7,3 +7,6 @@ bin/
 docs/oldcode/
 docs/personal/
 scripts/
+
+# IDE
+.vscode/

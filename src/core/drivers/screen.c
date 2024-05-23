@@ -3,7 +3,7 @@
 #include "../lib/mem.h"
 #include "../include/types.h"
 
-void print_char(char c, int col, int row) {
+void print_char_at(char c, int col, int row) {
     unsigned char* vid = (char*)VIDEO_ADDRESS;
     int offset;
 
@@ -29,6 +29,10 @@ void print_char(char c, int col, int row) {
     set_cursor(offset);
 }
 
+void print_char(char c) {
+    print_char_at(c, -1, -1);
+}
+
 /* FUNCITON DOESN'T WORK (prints last char of the string) */
 void print_at(char* message, int col, int row) {
     //if (message = 0)
@@ -40,7 +44,7 @@ void print_at(char* message, int col, int row) {
 
     int i = 0;
     while (message[i] != 0) {
-        print_char(message[i++], col, row);
+        print_char_at(message[i++], col, row);
     }
 }
 
@@ -52,7 +56,7 @@ void print_backspace() {
     int offset = get_cursor() - 2;
     int row = get_offset_row(offset);
     int col = get_offset_col(offset);
-    print_char(0, col, row);
+    print_char_at(0, col, row);
     set_cursor(offset);
 }
 
@@ -104,7 +108,7 @@ void clear_screen() {
 
     for (row = 0; row < MAX_ROWS; row++) {
         for (col = 0; col < MAX_COLS; col++) {
-            print_char(' ', col, row);
+            print_char_at(0, col, row);
         }
     }
 

@@ -25,7 +25,8 @@ void set_cursor(int offset);
 int get_cursor();
 int handle_scrolling(int cursor_offset);
 
-void print_char(char c, int col, int row);
+void print_char_at(char c, int col, int row);
+void print_char(char c);
 void print_at(char* message, int col, int row);
 void print(char* message);
 void print_backspace();

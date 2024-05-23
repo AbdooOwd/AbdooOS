@@ -1,5 +1,5 @@
 #include "kernel.h"
-#include "../drivers/screen.h"
+#include "../include/stdio.h"
 #include "../cpu/isr.h"
 #include "../drivers/keyboard.h"
 #include "../lib/string.h"
@@ -28,6 +28,10 @@ void kmain_() {
 void user_input(char* input) {
     if (str_same(input, "layout")) {
         change_layout();
+    }
+
+    if (str_same(input, "test")) {
+        //printf("I love %s", "POOP");
     }
 
     if (str_same(input, "ls")) {

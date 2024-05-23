@@ -65,7 +65,7 @@ $(BUILD_DIR)/stage2.bin: $(SRC_DIR)/boot/stage2.asm
 #	$(ASM) $< -f bin -o $@
 
 $(BUILD_DIR)/kernel.bin: $(ENTRY_OBJECT) $(C_OBJECTS) $(ASM_OBJECTS) | always
-	$(LD16) -o $@ -Ttext 0x100000 $^ --oformat binary -Map $(BUILD_DIR)/info/linked.map
+	$(LD16) -o $@ -Ttext 0x1000 $^ --oformat binary -Map $(BUILD_DIR)/info/linked.map
 
 
 #
