@@ -85,41 +85,14 @@ int strcmp(char s1[], char s2[]) {
     return s1[i] - s2[i];
 }
 
-char* get_first_split(char* str, char split) {
-    char* le_word = "";
-    int i = 0;
-    while (str[i] != split && str[i] != '\0') {
-        le_word += str[i];
-        i++;
+bool str_same(char* one, char* two) {
+    if (strcmp(one, two) == 0) {
+        return true;
     }
-
-    return le_word;
+    
+    return false;
 }
 
-size_t split(char str[], char splitter, char* splitten[]) {
-    char* scanned;
-
-    // our new element in the list will be at this index (after finding 'splitter')
-    size_t splitten_index = 0;
-
-    // iterate through each char of the provided string
-    for (size_t i = 0; i < strlen(str) + 1; i++) {
-
-        // "one two three"
-
-        // if splitter is found in string at 'i' char
-        if (str[i] == splitter || str[i] == '\0') {
-            append(scanned, '\0');              // null-termminate new string
-            splitten[splitten_index] = scanned; // add new string
-            splitten_index++;                   // (future) next new string 
-            print(scanned);
-            scanned = '\0';                     // clear scanned string
-        } else {
-            append(scanned, str[i]);            // just add scanned char to scanned string
-        }
-    }
-    return splitten_index + 1;
-}
 
 void merge_strings(char str1[], char str2[], char result[]) {
     // TODO: Fix that it adds a space between strings
@@ -153,19 +126,4 @@ void upper(char* str) {
     for (int i = 0; i < strlen(str); i++)
         if (str[i] >= 'a' && str[i] <= 'z')
             str[i] -= 0x20;
-}
-
-void strip(char* to_strip, char* stripped) {
-    for (size_t i = 0; i < strlen(to_strip); i++)
-        if (to_strip[i] != ' ')
-            append(stripped, to_strip[i]);
-}
-
-char* strip_ret(char* str) {
-    char* stripped_str;
-    for (size_t i = 0; i < strlen(str); i++)
-        if (str[i] != ' ')
-            append(stripped_str, str[i]);
-
-    return stripped_str;
 }
